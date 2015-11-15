@@ -1,0 +1,102 @@
+package com.aline.test;
+
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
+import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
+import io.fabric.sdk.android.Fabric;
+
+import com.twitter.sdk.android.core.services.SearchService;
+import com.twitter.sdk.android.core.services.params.Geocode;
+import com.twitter.sdk.android.tweetui.*;
+import com.twitter.sdk.android.core.*;
+import android.util.Log;
+import com.twitter.sdk.android.core.models.Search;
+
+public class MainActivity extends AppCompatActivity {
+
+    // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
+    private static final String TWITTER_KEY = "iHkQDqhctSDggRz6QfYS2FW0r";
+    private static final String TWITTER_SECRET = "B3E1P4wXtxP3xGlT4FwDXWbIJVPWr31uOfFTWmJrpydbaY5NdM";
+    private static Result<Search> search;
+
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
+        Fabric.with(this, new Twitter(authConfig));
+        setContentView(R.layout.activity_main);
+
+        Geocode prince = new Geocode(40.2055d, -74.3933d, 75, Geocode.Distance.KILOMETERS);
+        //final String rawr="life is very be easy";
+        final SearchService service = Twitter.getApiClient().getSearchService();
+
+        final String[] hashtags = {"#paris", "#party", "#britneyspears", "#pokemon", "#computerscience", "#fun", "#lol", "#friends", "#coding", "#life", "#justinbieber", "#meow", "#health", "#fitness", "#programming", "#hacktathon", "#nosleep", "#energy"};
+        int[] popularity = new int[hashtags.length];
+        for( int i=0; i<hashtags.length;i++) {
+            service.tweets(hashtags[i], prince, null, null, null, 100, null, null, null, null, new Callback<Search>() {
+                        // service.tweets("#paris", prince,null,null,"popular",100,null ,null,null,null, new Callback<Search>() {
+                        @Override
+                        public void success(Result<Search> searchResult) {
+                            Log.d("test", "" + searchResult.data.tweets.size());
+
+                            // textView.setText("" + searchResult.data.tweets.size());
+                            search = searchResult;
+                        }
+
+                        @Override
+                        public void failure(TwitterException error) {
+                            Log.d("test", "error");
+                        }
+                    }
+            );
+            popularity[i] = search.data.tweets.size();
+            try {
+                wait(500000l);
+            } catch (Exception e) {
+            }
+        }
+        int correctAnswer = findAnswer(popularity, getChoices(popularity));
+        //textView.setText("" + answer);
+        Log.d("test", "" + correctAnswer);
+    }
+
+    public int [] getChoices ( int [] a ) {
+        int [] four = new int [4];
+        for (int i = 0; i < a.length; i++) {
+            boolean iffound = false;
+            int randomNum = (int) (Math.random() * a.length);
+            for (int j=0; j < i; j++) {
+                if(randomNum== four[j])
+                    iffound=true;
+            }
+            if(iffound)
+            {
+                i--;
+            }
+            else
+            {
+                a[i]=randomNum;
+            }
+        }
+        return four;
+    }
+    public int findAnswer( int [] pop, int [] myfour) {
+        int max=0;
+        int maxD=0;
+        for( int i=0; i<myfour.length; i++)
+        {
+            if( max<pop[myfour[i]])
+            {
+                max=pop[myfour[i]];
+                maxD=myfour[i];
+            }
+        }
+        return maxD;
+    }
+}
